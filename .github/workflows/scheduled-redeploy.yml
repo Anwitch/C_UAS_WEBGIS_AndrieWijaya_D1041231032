@@ -3,8 +3,8 @@ name: Scheduled Redeploy Trigger
 on:
   workflow_dispatch:
   schedule:
-    # Runs daily at 04:30 WIB (21:30 UTC).
-    - cron: "30 21 * * *"
+    # Runs daily at 01:30 WIB (18:30 UTC).
+    - cron: "30 18 * * *"
 
 permissions:
   contents: write
