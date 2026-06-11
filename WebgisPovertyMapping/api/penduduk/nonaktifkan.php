@@ -1,0 +1,29 @@
+<?php
+header('Content-Type: application/json');
+require_once '../../config.php';
+require_once '../../auth/helper.php';
+require_once '../../koneksi.php';
+require_auth('administrator');
+require_csrf();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']); exit;
+}
+
+$id = (int)($_POST['id'] ?? 0);
+if (!$id) {
+    echo json_encode(['status' => 'error', 'message' => 'ID tidak valid']); exit;
+}
+
+$stmt = $conn->prepare(
+    "UPDATE penduduk_miskin SET is_active = 0 WHERE id = ? AND is_active = 1 AND deleted_at IS NULL"
+);
+$stmt->bind_param('i', $id);
+
+if ($stmt->execute() && $stmt->affected_rows > 0) {
+    echo json_encode(['status' => 'success', 'message' => 'Warga berhasil dinonaktifkan']);
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'Data tidak ditemukan atau sudah tidak aktif']);
+}
+$stmt->close();
+$conn->close();

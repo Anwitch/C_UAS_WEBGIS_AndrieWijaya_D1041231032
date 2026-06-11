@@ -1,0 +1,18 @@
+# WebGIS Poverty Mapping - Apache hardening
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Test scripts are for local CLI verification only.
+    # They must not be executable from a browser.
+    RewriteRule ^tests(/|$) - [F,L]
+
+    # Runtime/session scratch data must not be browsable.
+    RewriteRule ^tmp(/|$) - [F,L]
+
+    # Local agent/tooling metadata is not part of the application.
+    RewriteRule ^\.claude(/|$) - [F,L]
+    RewriteRule ^\.superpowers(/|$) - [F,L]
+</IfModule>

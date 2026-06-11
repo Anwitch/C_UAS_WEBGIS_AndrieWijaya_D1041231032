@@ -1,0 +1,43 @@
+# Local agent/tooling metadata
+.claude/
+.superpowers/
+.agents/
+.codex/
+
+# Generated runtime/temp files
+tmp/
+.env
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Dependency/cache folders not required by this plain PHP submission
+node_modules/
+.cache/
+__pycache__/
+
+# Unrelated local design scratch file at repository root
+DESIGN.md
+
+# Unrelated file
+Tugas/
+superpowers
+
+# Internal development planning docs, not needed for submission
+WebgisPovertyMapping/docs/superpowers/
+WebgisPovertyMapping/docs/archive/
+WebgisPovertyMapping/docs/audit-fix-task-plan.md
+/docs
+/02
+/submission
+SpesifikasiKebutuhanPerangkatLunak.docx
+SpesifikasiKebutuhanPerangkatLunak.md

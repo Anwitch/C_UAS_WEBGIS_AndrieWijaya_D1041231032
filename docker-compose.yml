@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASS: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}
+      DB_PORT: 3306
+      DB_01_NAME: db_webgis_01
+      DB_WEBGIS_NAME: db_webgis
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./01/setup_database.sql:/docker-entrypoint-initdb.d/01-db-webgis-01.sql:ro
+      - ./WebgisPovertyMapping/setup_database.sql:/docker-entrypoint-initdb.d/02-db-webgis.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  db_data:
