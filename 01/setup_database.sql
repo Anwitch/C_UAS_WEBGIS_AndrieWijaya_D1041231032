@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL
 );
 
--- Default: admin / password
+-- Development seed only. Before public deployment, rotate this password immediately
+-- or replace this seed with an environment-specific admin creation step.
 INSERT IGNORE INTO users (username, password) VALUES (
     'admin',
     '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'

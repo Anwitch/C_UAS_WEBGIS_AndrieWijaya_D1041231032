@@ -6,8 +6,8 @@ require_once '../../koneksi.php';
 $result = $conn->query("SELECT id, nama_tempat, no_wa, buka_24jam, latitude, longitude FROM lokasi_usaha ORDER BY id DESC");
 
 if (!$result) {
-    echo json_encode(['status' => 'error', 'message' => $conn->error]);
-    exit;
+    error_log('Project 01 point read failed: ' . $conn->error);
+    json_error('Gagal memuat data lokasi.', 500);
 }
 
 $data = [];

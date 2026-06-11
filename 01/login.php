@@ -7,17 +7,22 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    if ($username && $password) {
+    if (login_is_throttled($username)) {
+        $error = 'Terlalu banyak percobaan gagal. Coba lagi beberapa menit.';
+    } elseif ($username && $password) {
         $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
         $stmt->bind_param('s', $username);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
         if ($row && password_verify($password, $row['password'])) {
+            harden_successful_login();
+            login_record_success($username);
             $_SESSION['admin_id']       = $row['id'];
             $_SESSION['admin_username'] = $username;
             header('Location: index.php'); exit;
         }
+        login_record_failure($username);
         $error = 'Username atau password salah.';
     } else {
         $error = 'Username dan password wajib diisi.';
@@ -37,22 +42,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-    --sb-bg:      #1c1612;
-    --body-bg:    #f5f0eb;
-    --card-bg:    #fafaf9;
-    --card-border:#ddd8d2;
-    --accent:     #0d7490;
-    --accent-h:   #0a5f7a;
-    --accent-dim: rgba(13,116,144,.06);
-    --text:       #201515;
-    --text-sec:   #3d3530;
-    --text-muted: #7a7067;
+    --sb-bg:      #201515; /* ink */
+    --body-bg:    #f8f4f0; /* canvas-soft */
+    --card-bg:    #fffefb; /* canvas */
+    --card-border:#e6e1d5; /* warm border */
+    --accent:     #ff4f00; /* primary (Zapier Orange) */
+    --accent-h:   #e04600; /* accent hover */
+    --accent-dim: rgba(255, 79, 0, 0.08);
+    --text:       #201515; /* ink */
+    --text-sec:   #2f2a26; /* ink-soft */
+    --text-muted: #605d52; /* body */
     --danger:     #ef4444;
-    --danger-dim: rgba(239,68,68,.08);
-    --danger-bdr: rgba(239,68,68,.25);
-    --border:     #ddd8d2;
+    --danger-dim: rgba(239, 68, 68, 0.08);
+    --danger-bdr: rgba(239, 68, 68, 0.25);
+    --border:     #e6e1d5;
     --radius:     12px;
-    --shadow:     0 4px 12px rgba(32,21,21,.08), 0 1px 2px rgba(32,21,21,.04);
+    --radius-sm:  6px;
+    --shadow:     0 6px 20px rgba(32, 21, 21, 0.08);
     --font:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 html, body { height: 100%; font-family: var(--font); background: var(--body-bg); color: var(--text); }
@@ -73,7 +79,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--body-bg);
 }
 .brand-logo { display: flex; align-items: center; gap: 12px; position: relative; }
 .brand-logo-icon {
-    width: 44px; height: 44px; border-radius: 12px; background: #0d7490;
+    width: 44px; height: 44px; border-radius: var(--radius); background: var(--accent);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .brand-logo-icon .lucide { width: 22px; height: 22px; color: #fff; }
@@ -104,12 +110,12 @@ html, body { height: 100%; font-family: var(--font); background: var(--body-bg);
 .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sec); margin-bottom: 7px; }
 .input-wrap { position: relative; }
 .form-group input {
-    width: 100%; padding: 11px 14px; background: #ede8e2;
-    border: 1.5px solid var(--border); border-radius: 9px;
+    width: 100%; padding: 11px 14px; background: var(--body-bg);
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
     color: var(--text); font-family: var(--font); font-size: 14px; outline: none;
     transition: border-color .2s, background .2s, box-shadow .2s;
 }
-.form-group input:focus { border-color: var(--accent); background: #fafaf9; box-shadow: 0 0 0 3px rgba(13,116,144,.08); }
+.form-group input:focus { border-color: var(--text); background: var(--card-bg); box-shadow: 0 0 0 3px var(--accent-dim); }
 .form-group input::placeholder { color: var(--text-muted); }
 .input-wrap input { padding-right: 44px; }
 .pw-toggle {

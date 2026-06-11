@@ -1,30 +1,32 @@
 <?php
-// api/point/update_posisi.php — Update koordinat POI (drag marker)
-header('Content-Type: application/json');
+require_once '../../auth/helper.php';
+require_once '../../includes/validation.php';
+
+require_admin_post();
 require_once '../../koneksi.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-    exit;
+$id = (int)($_POST['id'] ?? 0);
+$coords = validate_lat_lng($_POST['latitude'] ?? null, $_POST['longitude'] ?? null);
+
+if ($id <= 0 || $coords === null) {
+    json_error('ID atau koordinat tidak valid.', 400);
 }
 
-$id = (int) ($_POST['id'] ?? 0);
-$lat = (float) ($_POST['latitude'] ?? 0);
-$lng = (float) ($_POST['longitude'] ?? 0);
-
-if (!$id) {
-    echo json_encode(['status' => 'error', 'message' => 'ID tidak valid']);
-    exit;
-}
-
+[$lat, $lng] = $coords;
 $stmt = $conn->prepare("UPDATE lokasi_usaha SET latitude = ?, longitude = ? WHERE id = ?");
-$stmt->bind_param('ddi', $lat, $lng, $id);
-
-if ($stmt->execute() && $stmt->affected_rows > 0) {
-    echo json_encode(['status' => 'success', 'message' => 'Posisi diperbarui']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Gagal memperbarui posisi']);
+if (!$stmt) {
+    error_log('Project 01 point position prepare failed: ' . $conn->error);
+    json_error('Gagal memperbarui posisi.', 500);
 }
 
-$stmt->close();
-$conn->close();
+$stmt->bind_param('ddi', $lat, $lng, $id);
+if (!$stmt->execute()) {
+    error_log('Project 01 point position update failed: ' . $stmt->error);
+    json_error('Gagal memperbarui posisi.', 500);
+}
+
+if ($stmt->affected_rows <= 0) {
+    json_error('Data tidak ditemukan atau posisi tidak berubah.', 404);
+}
+
+json_success(['message' => 'Posisi diperbarui']);

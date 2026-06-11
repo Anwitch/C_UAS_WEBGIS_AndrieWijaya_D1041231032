@@ -725,7 +725,7 @@
 	<div class="confirm-overlay" id="deleteConfirmOverlay" aria-hidden="true">
 		<div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
 			<div class="confirm-header">
-				<div class="confirm-icon">🗑</div>
+				<div class="confirm-icon">!</div>
 				<div id="deleteConfirmTitle">Hapus Lokasi</div>
 			</div>
 			<div class="confirm-body" id="deleteConfirmMessage">
@@ -1011,7 +1011,7 @@
             </div>
             ${waLink}
 			<button class="btn-hapus" onclick="hapusMarker(${poi.id}, this)">
-				🗑 Hapus Lokasi
+				Hapus Lokasi
 			</button>
         </div>`;
 
@@ -1075,7 +1075,7 @@
             <input type="hidden" id="f_lng" value="${lng}">
 
             <button class="btn-save" id="btnSimpan" onclick="simpanData()">
-                💾 Simpan Lokasi
+                Simpan Lokasi
             </button>
             <div class="form-status" id="formStatus"></div>
         </div>`;
@@ -1114,7 +1114,7 @@
 			}
 
 			btn.disabled = true;
-			btn.textContent = '⏳ Menyimpan...';
+			btn.textContent = 'Menyimpan...';
 			status.textContent = '';
 
 			const formData = new FormData();
@@ -1148,7 +1148,7 @@
 					status.textContent = '✕ ' + err.message;
 					status.className = 'form-status error';
 					btn.disabled = false;
-					btn.textContent = '💾 Simpan Lokasi';
+					btn.textContent = 'Simpan Lokasi';
 				});
 		}
 
@@ -1158,7 +1158,7 @@
 					if (!confirmed) return;
 
 					btnEl.disabled = true;
-					btnEl.textContent = '⏳ Menghapus...';
+					btnEl.textContent = 'Menghapus...';
 
 					const formData = new FormData();
 					formData.append('id', id);
@@ -1196,7 +1196,7 @@
 				.catch((err) => {
 					showToast(err.message || 'Gagal terhubung ke server.', 'error');
 					btnEl.disabled = false;
-					btnEl.textContent = '🗑 Hapus Lokasi';
+					btnEl.textContent = 'Hapus Lokasi';
 				});
 		}
 

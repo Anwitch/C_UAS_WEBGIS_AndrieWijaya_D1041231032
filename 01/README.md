@@ -82,3 +82,15 @@ http://localhost/webgis/01/
 - Google Fonts
 
 Dependensi frontend dimuat dari CDN, sehingga demo membutuhkan koneksi internet.
+
+## Public Deployment Hardening
+
+Before exposing `01/` publicly:
+
+- Rotate the seeded admin password.
+- Keep public users read-only.
+- Confirm anonymous POST requests to `api/point`, `api/jalan`, `api/parsil`, and `api/choropleth` return `403`.
+- Confirm `/01/setup_database.sql`, `/01/tests/`, `/01/docs/`, and dotfiles are not reachable by browser.
+- Use a database user with limited app privileges in production.
+
+Production database note: create a MariaDB user with privileges only on `db_webgis_01` and configure `APP_DB_USER` / `APP_DB_PASSWORD`. Do not run the public app with the root database user after initial setup.

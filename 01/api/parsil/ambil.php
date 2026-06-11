@@ -6,8 +6,8 @@ require_once '../../koneksi.php';
 $result = $conn->query("SELECT id, nama_parsil, status_kepemilikan, geojson, luas_m2 FROM data_parsil ORDER BY id DESC");
 
 if (!$result) {
-    echo json_encode(['status' => 'error', 'message' => $conn->error]);
-    exit;
+    error_log('Project 01 parcel read failed: ' . $conn->error);
+    json_error('Gagal memuat data parsil.', 500);
 }
 
 $data = [];

@@ -8,8 +8,8 @@ $result = $conn->query(
 );
 
 if ($result === false) {
-    echo json_encode(['status' => 'error', 'message' => 'Tabel belum ada. Jalankan setup_database.sql terlebih dahulu. (' . $conn->error . ')']);
-    $conn->close(); exit;
+    error_log('Project 01 choropleth metadata read failed: ' . $conn->error);
+    json_error('Gagal memuat layer.', 500);
 }
 
 $rows = [];
@@ -26,4 +26,4 @@ while ($r = $result->fetch_assoc()) {
 }
 $conn->close();
 
-echo json_encode(['status' => 'success', 'data' => $rows, 'total' => count($rows)]);
+json_success(['data' => $rows, 'total' => count($rows)]);

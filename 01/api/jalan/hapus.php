@@ -1,27 +1,28 @@
 <?php
-// api/jalan/hapus.php — Hapus data jalan
-header('Content-Type: application/json');
+require_once '../../auth/helper.php';
+
+require_admin_post();
 require_once '../../koneksi.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-    exit;
-}
-
-$id = (int) ($_POST['id'] ?? 0);
-if (!$id) {
-    echo json_encode(['status' => 'error', 'message' => 'ID tidak valid']);
-    exit;
+$id = (int)($_POST['id'] ?? 0);
+if ($id <= 0) {
+    json_error('ID tidak valid.', 400);
 }
 
 $stmt = $conn->prepare("DELETE FROM data_jalan WHERE id = ?");
-$stmt->bind_param('i', $id);
-
-if ($stmt->execute() && $stmt->affected_rows > 0) {
-    echo json_encode(['status' => 'success', 'message' => 'Data jalan berhasil dihapus']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Data tidak ditemukan atau gagal dihapus']);
+if (!$stmt) {
+    error_log('Project 01 road delete prepare failed: ' . $conn->error);
+    json_error('Gagal menghapus data jalan.', 500);
 }
 
-$stmt->close();
-$conn->close();
+$stmt->bind_param('i', $id);
+if (!$stmt->execute()) {
+    error_log('Project 01 road delete failed: ' . $stmt->error);
+    json_error('Gagal menghapus data jalan.', 500);
+}
+
+if ($stmt->affected_rows <= 0) {
+    json_error('Data jalan tidak ditemukan.', 404);
+}
+
+json_success(['message' => 'Data jalan berhasil dihapus']);

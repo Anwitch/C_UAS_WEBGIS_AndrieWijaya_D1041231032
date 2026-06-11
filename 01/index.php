@@ -22,28 +22,28 @@ $admin_init     = $is_admin ? mb_strtoupper(mb_substr($admin_username, 0, 1, 'UT
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
     --sb-w:        260px;
-    --sb-bg:       #1c1612;
-    --sb-text:     #a89f96;
-    --sb-text-h:   #ffffff;
-    --sb-sect:     #5c5148;
-    --hd-bg:       #fafaf9;
-    --hd-border:   #ddd8d2;
-    --body-bg:     #f5f0eb;
-    --card-bg:     #fafaf9;
-    --card-border: #ddd8d2;
-    --text-1:      #201515;
-    --text-2:      #3d3530;
-    --text-m:      #7a7067;
-    --accent:      #0d7490;
-    --accent-h:    #0a5f7a;
-    --accent-dim:  rgba(13,116,144,.08);
+    --sb-bg:       #201515; /* ink */
+    --sb-text:     #939084; /* body-mid */
+    --sb-text-h:   #fffefb; /* canvas */
+    --sb-sect:     #c5c0b1; /* mute */
+    --hd-bg:       #fffefb; /* canvas */
+    --hd-border:   #e6e1d5; /* warm border */
+    --body-bg:     #f8f4f0; /* canvas-soft */
+    --card-bg:     #fffefb; /* canvas */
+    --card-border: #e6e1d5; /* warm border */
+    --text-1:      #201515; /* ink */
+    --text-2:      #2f2a26; /* ink-soft */
+    --text-m:      #605d52; /* body */
+    --accent:      #ff4f00; /* primary (Zapier Orange) */
+    --accent-h:    #e04600; /* accent hover */
+    --accent-dim:  rgba(255, 79, 0, 0.08);
     --danger:      #ef4444;
-    --danger-dim:  rgba(239,68,68,.08);
-    --danger-bdr:  rgba(239,68,68,.25);
-    --radius:      12px;
-    --radius-sm:   8px;
+    --danger-dim:  rgba(239, 68, 68, 0.08);
+    --danger-bdr:  rgba(239, 68, 68, 0.25);
+    --radius:      12px; /* rounded.md */
+    --radius-sm:   6px;  /* rounded.sm */
     --font:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --shadow:      0 4px 16px rgba(32,21,21,.1);
+    --shadow:      0 6px 20px rgba(32, 21, 21, 0.08);
 }
 html, body { height: 100%; font-family: var(--font); background: var(--body-bg); color: var(--text-1); overflow: hidden; }
 
@@ -293,12 +293,12 @@ html, body { height: 100%; font-family: var(--font); background: var(--body-bg);
 .form-group select,
 .form-group textarea {
     width: 100%; padding: 10px 13px;
-    background: #ede8e2; border: 1.5px solid var(--card-border); border-radius: 8px;
+    background: var(--body-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm);
     color: var(--text-1); font-family: var(--font); font-size: 13px; outline: none;
     transition: border-color .2s, background .2s, box-shadow .2s;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--accent); background: #fafaf9; box-shadow: 0 0 0 3px rgba(13,116,144,.08);
+    border-color: var(--text-1); background: var(--card-bg); box-shadow: 0 0 0 3px var(--accent-dim);
 }
 .form-group textarea { resize: vertical; min-height: 64px; }
 .form-group input[type="file"] { padding: 8px 13px; cursor: pointer; }
@@ -426,6 +426,201 @@ html, body { height: 100%; font-family: var(--font); background: var(--body-bg);
 }
 .classic-row:hover { background: rgba(255,255,255,.05); }
 .classic-count { font-size: 10px; color: var(--sb-text); margin-top: 1px; }
+
+/* ── Leaflet Popup Customizations ───────────────────────────── */
+.leaflet-popup-content-wrapper {
+    background: var(--card-bg) !important;
+    color: var(--text-1) !important;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow) !important;
+    overflow: hidden;
+}
+.leaflet-popup-content {
+    margin: 0 !important;
+    font-family: var(--font) !important;
+}
+.leaflet-popup-tip {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border);
+    box-shadow: none !important;
+}
+
+/* ── Form Popup ─────────────────────────────────────────────── */
+.form-popup {
+    padding: 16px 20px;
+    background: var(--card-bg);
+}
+.form-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
+}
+.form-popup-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.form-popup-icon.blue {
+    background: rgba(56, 139, 253, 0.12);
+    color: #388bfd;
+}
+.form-popup-icon.amber {
+    background: rgba(234, 179, 8, 0.15);
+    color: #a87c00;
+}
+.form-popup-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.3px;
+}
+.form-popup-coords {
+    font-size: 10px;
+    color: var(--text-m);
+    font-family: var(--font);
+    margin-top: 2px;
+}
+.input-readonly {
+    width: 100%;
+    padding: 10px 13px;
+    background: var(--body-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-m);
+    font-weight: 500;
+}
+.btn-save {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent);
+    color: var(--sb-text-h);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.btn-save:hover:not(:disabled) {
+    background: var(--accent-h);
+}
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Info Popup ─────────────────────────────────────────────── */
+.info-popup {
+    padding: 16px 20px;
+}
+.info-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.info-popup-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.info-popup-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+}
+.info-popup-id {
+    font-size: 10px;
+    color: var(--text-m);
+    font-family: var(--font);
+    margin-top: 2px;
+}
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--card-border);
+    font-size: 13px;
+}
+.info-row-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--body-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.info-row-label {
+    font-size: 10px;
+    color: var(--text-m);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+.info-row-value {
+    font-weight: 500;
+    color: var(--text-1);
+}
+.status-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.btn-hapus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px;
+    background: transparent;
+    color: var(--danger);
+    border: 1.5px solid var(--danger-bdr);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-hapus:hover {
+    background: var(--danger-dim);
+    border-color: var(--danger);
+}
 </style>
 </head>
 <body>
@@ -680,6 +875,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--body-bg);
 <script>
 // ── Globals ──────────────────────────────────────────────────
 window._IS_ADMIN = <?= $is_admin ? 'true' : 'false' ?>;
+window._CSRF_TOKEN = <?= json_encode($is_admin ? csrf_token() : '') ?>;
 
 function escapeHTML(s) {
     return String(s ?? '')
@@ -941,6 +1137,7 @@ async function submitUpload() {
     fd.append('geojson',       gjBlob, file ? file.name : 'layer.geojson');
     fd.append('attribute_key', attr_key);
     fd.append('palette',       _selectedPal);
+    fd.append('csrf_token', window._CSRF_TOKEN || '');
 
     try {
         const res = await fetch('api/choropleth/upload.php', { method: 'POST', body: fd });
@@ -972,8 +1169,16 @@ var currentSubMode = '';
 var activeTool     = null;
 window._dlFocusFns = {};
 
+function syncModeGlobals() {
+    window.currentMode = currentMode;
+    window.currentSubMode = currentSubMode;
+    window.activeTool = activeTool;
+}
+syncModeGlobals();
+
 window._resetActiveTool = function() {
     activeTool = null; currentMode = 0; currentSubMode = '';
+    syncModeGlobals();
     setDrawBlockingLayerHitTesting(true);
     setChoroplethHitTesting(true);
     ['Point','Jalan','Parsil'].forEach(function(t) {
@@ -1009,11 +1214,13 @@ function activateTool(tool) {
 
     if (tool === 'point') {
         currentMode = 1; currentSubMode = 'point';
+        syncModeGlobals();
         setDrawBlockingLayerHitTesting(false);
         setChoroplethHitTesting(false);
         if (dH) dH.classList.add('visible');
     } else if (tool === 'jalan') {
         currentMode = 2; currentSubMode = 'jalan';
+        syncModeGlobals();
         setDrawBlockingLayerHitTesting(false);
         setChoroplethHitTesting(false);
         if (lJ) lJ.classList.add('visible');
@@ -1021,6 +1228,7 @@ function activateTool(tool) {
         if (typeof window._jalanStartDraw === 'function') window._jalanStartDraw();
     } else if (tool === 'parsil') {
         currentMode = 2; currentSubMode = 'parsil';
+        syncModeGlobals();
         setDrawBlockingLayerHitTesting(false);
         setChoroplethHitTesting(false);
         if (lP) lP.classList.add('visible');
@@ -1028,6 +1236,7 @@ function activateTool(tool) {
         if (typeof window._parsilStartDraw === 'function') window._parsilStartDraw();
     } else {
         currentMode = 0; currentSubMode = '';
+        syncModeGlobals();
         setDrawBlockingLayerHitTesting(true);
         setChoroplethHitTesting(true);
         if (dH) dH.classList.remove('visible');
@@ -1056,7 +1265,11 @@ function cancelActiveDrawing() {
 }
 
 function updateCount(n, icon) {
-    const m = { '📍': 'countPoint', '🛣️': 'countJalan', '🏘️': 'countParsil' };
+    const m = {
+        '📍': 'countPoint', 'Point': 'countPoint',
+        '🛣️': 'countJalan', 'Jalan': 'countJalan',
+        '🏘️': 'countParsil', 'Parsil': 'countParsil'
+    };
     const el = document.getElementById(m[icon]);
     if (el) el.textContent = n + ' data';
 }
@@ -1076,7 +1289,7 @@ function setPaneHitTesting(paneName, enabled) {
 }
 
 function setDrawBlockingLayerHitTesting(enabled) {
-    ['choroplethPane', 'parsilPane', 'jalanPane', 'pointPane', 'drawPane'].forEach(function(paneName) {
+    ['choroplethPane', 'parsilPane', 'jalanPane', 'pointPane'].forEach(function(paneName) {
         setPaneHitTesting(paneName, enabled);
     });
 }
@@ -1104,6 +1317,12 @@ const map = L.map('map', {
     center: [-0.0557, 109.3487],
     zoom:   13,
     zoomControl: false,
+});
+
+map.on('popupopen', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 });
 
 [

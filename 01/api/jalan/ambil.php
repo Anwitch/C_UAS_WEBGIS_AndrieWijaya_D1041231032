@@ -6,8 +6,8 @@ require_once '../../koneksi.php';
 $result = $conn->query("SELECT id, nama_jalan, status_jalan, geojson, panjang_meter FROM data_jalan ORDER BY id DESC");
 
 if (!$result) {
-    echo json_encode(['status' => 'error', 'message' => $conn->error]);
-    exit;
+    error_log('Project 01 road read failed: ' . $conn->error);
+    json_error('Gagal memuat data jalan.', 500);
 }
 
 $data = [];

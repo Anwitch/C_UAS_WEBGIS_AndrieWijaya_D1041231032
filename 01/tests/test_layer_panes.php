@@ -32,9 +32,14 @@ foreach (['choroplethPane', 'parsilPane', 'jalanPane', 'drawPane', 'pointPane'] 
 assert_contains($index, 'map.createPane(name)', 'index.php');
 assert_contains($index, '.leaflet-pane.is-hit-disabled *', 'choropleth disabled pane CSS');
 assert_contains($index, 'function setDrawBlockingLayerHitTesting(enabled)', 'draw blocking pane helper');
-foreach (['choroplethPane', 'parsilPane', 'jalanPane', 'pointPane', 'drawPane'] as $pane) {
+assert_contains($index, "['choroplethPane', 'parsilPane', 'jalanPane', 'pointPane'].forEach", 'draw blocking pane list excludes drawPane');
+foreach (['choroplethPane', 'parsilPane', 'jalanPane', 'pointPane'] as $pane) {
     assert_contains($index, "'{$pane}'", 'draw blocking pane list');
 }
+assert_contains($index, 'function syncModeGlobals()', 'mode globals sync helper');
+assert_contains($index, 'window.currentMode = currentMode;', 'currentMode global sync');
+assert_contains($index, 'window.currentSubMode = currentSubMode;', 'currentSubMode global sync');
+assert_contains($index, 'window.activeTool = activeTool;', 'activeTool global sync');
 assert_contains($index, 'function setChoroplethHitTesting(enabled)', 'choropleth hit-testing helper');
 assert_contains($index, "pane.style.pointerEvents = enabled ? '' : 'none';", 'choropleth hit-testing toggle');
 assert_contains($index, "pane.classList.toggle('is-hit-disabled', !enabled);", 'choropleth disabled pane class toggle');
@@ -48,6 +53,12 @@ assert_contains($index, 'onclick="cancelActiveDrawing()"', 'draw hint cancel but
 assert_contains($choropleth, "pane: 'choroplethPane'", 'choropleth layer options');
 assert_contains($choropleth, 'function isClassicDrawingActive()', 'choropleth draw guard');
 assert_contains($choropleth, 'if (isClassicDrawingActive()) return;', 'choropleth draw guard usage');
+assert_contains($choropleth, "window.activeTool === 'jalan'", 'choropleth active tool draw fallback');
+assert_contains($choropleth, "document.getElementById('drawHint')", 'choropleth draw hint fallback');
+assert_contains($choropleth, 'function forwardDrawingEventToMap(type, e)', 'choropleth drawing event forwarding helper');
+assert_contains($choropleth, "if (forwardDrawingEventToMap('click', e)) return;", 'choropleth forwards drawing clicks to map');
+assert_contains($choropleth, "layer.on('dblclick'", 'choropleth double click handler');
+assert_contains($choropleth, "if (forwardDrawingEventToMap('dblclick', e)) return;", 'choropleth forwards drawing double clicks to map');
 assert_contains($choropleth, 'function setLayerHitTesting(leafletLayer, enabled)', 'choropleth layer hit-testing helper');
 assert_contains($choropleth, "layer._path.style.pointerEvents = enabled ? '' : 'none';", 'choropleth path hit-testing toggle');
 assert_contains($choropleth, 'setHitTesting: setAllHitTesting', 'choropleth public hit-testing API');

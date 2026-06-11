@@ -60,7 +60,33 @@
     }
 
     function isClassicDrawingActive() {
-        return typeof window.currentMode !== 'undefined' && Number(window.currentMode) !== 0;
+        const modeActive = typeof window.currentMode !== 'undefined' && Number(window.currentMode) !== 0;
+        const toolActive = window.activeTool === 'jalan' || window.activeTool === 'parsil' || window.activeTool === 'point';
+        const drawHint = document.getElementById('drawHint');
+        const hintVisible = !!drawHint && drawHint.classList.contains('visible');
+        return modeActive || toolActive || hintVisible;
+    }
+
+    function stopLayerEvent(e) {
+        if (e.originalEvent) {
+            L.DomEvent.stop(e.originalEvent);
+        } else {
+            L.DomEvent.stopPropagation(e);
+        }
+    }
+
+    function forwardDrawingEventToMap(type, e) {
+        const active = isClassicDrawingActive();
+        console.log("choropleth.js forwardDrawingEventToMap: type =", type, ", isClassicDrawingActive =", active);
+        if (!active) return false;
+        stopLayerEvent(e);
+        map.fire(type, {
+            latlng: e.latlng,
+            layerPoint: e.layerPoint || map.latLngToLayerPoint(e.latlng),
+            containerPoint: e.containerPoint || map.latLngToContainerPoint(e.latlng),
+            originalEvent: e.originalEvent,
+        });
+        return true;
     }
 
     function setLayerHitTesting(leafletLayer, enabled) {
@@ -125,12 +151,15 @@
                     lyr.resetStyle(layer);
                 });
                 layer.on('click', function (e) {
-                    if (isClassicDrawingActive()) return;
+                    if (forwardDrawingEventToMap('click', e)) return;
                     L.popup({ closeButton: true, className: 'choro-popup-wrap' })
                         .setLatLng(e.latlng)
                         .setContent(buildPopup(true))
                         .openOn(map);
-                    L.DomEvent.stopPropagation(e);
+                    stopLayerEvent(e);
+                });
+                layer.on('dblclick', function (e) {
+                    if (forwardDrawingEventToMap('dblclick', e)) return;
                 });
             },
         });
@@ -189,9 +218,8 @@
             const eyeIcon    = isVisible ? 'eye' : 'eye-off';
             const palDots    = (PALETTES[m.palette] || PALETTES.blue)
                 .map(c => `<span class="pal-dot" style="background:${c}"></span>`).join('');
-            const safeNama   = m.nama.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const delBtn     = window._IS_ADMIN
-                ? `<button class="layer-del" onclick="window._choro.deleteLayer(${m.id},'${safeNama}')" title="Hapus"><i data-lucide="trash-2"></i></button>`
+                ? `<button class="layer-del" data-layer-delete="${m.id}" title="Hapus"><i data-lucide="trash-2"></i></button>`
                 : '';
             return `
             <div class="layer-item ${isVisible ? '' : 'is-hidden'}" id="li${m.id}">
@@ -208,6 +236,14 @@
                 <div class="layer-pal">${palDots}</div>
             </div>`;
         }).join('');
+
+        list.querySelectorAll('[data-layer-delete]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = Number(btn.getAttribute('data-layer-delete'));
+                const meta = allMeta.find(item => item.id === id);
+                if (meta) window._choro.deleteLayer(id, meta.nama);
+            });
+        });
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -255,7 +291,10 @@
             meta.is_visible   = newVisible;
             if (rendered) {
                 rendered.meta.is_visible = newVisible;
-                if (newVisible) rendered.leafletLayer.addTo(map);
+                if (newVisible) {
+                    rendered.leafletLayer.addTo(map);
+                    setLayerHitTesting(rendered.leafletLayer, !isClassicDrawingActive());
+                }
                 else            map.removeLayer(rendered.leafletLayer);
             }
 
@@ -266,6 +305,7 @@
             if (window._IS_ADMIN) {
                 const fd = new FormData();
                 fd.append('id', id);
+                fd.append('csrf_token', window._CSRF_TOKEN || '');
                 fetch('api/choropleth/toggle.php', { method: 'POST', body: fd }).catch(() => {});
             }
         },
@@ -275,6 +315,7 @@
                 if (!ok) return;
                 const fd = new FormData();
                 fd.append('id', id);
+                fd.append('csrf_token', window._CSRF_TOKEN || '');
                 fetch('api/choropleth/hapus.php', { method: 'POST', body: fd })
                     .then(r => r.json())
                     .then(j => {

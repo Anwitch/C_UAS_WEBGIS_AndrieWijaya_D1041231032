@@ -55,14 +55,18 @@
         return `
             <div class="info-popup">
                 <div class="info-popup-header">
-                    <div class="info-popup-icon" style="background:${color}22;">🛣️</div>
+                    <div class="info-popup-icon" style="background:${color}22;">
+                        <i data-lucide="route" style="color:${color};width:18px;height:18px;"></i>
+                    </div>
                     <div>
                         <div class="info-popup-name">${escapeHTML(row.nama_jalan)}</div>
                         <div class="info-popup-id">#${row.id}</div>
                     </div>
                 </div>
                 <div class="info-row">
-                    <div class="info-row-icon">🏷️</div>
+                    <div class="info-row-icon">
+                        <i data-lucide="tag" style="width:14px;height:14px;color:var(--text-m)"></i>
+                    </div>
                     <div>
                         <div class="info-row-label">Status Jalan</div>
                         <div class="info-row-value">
@@ -74,13 +78,15 @@
                     </div>
                 </div>
                 <div class="info-row">
-                    <div class="info-row-icon">📏</div>
+                    <div class="info-row-icon">
+                        <i data-lucide="milestone" style="width:14px;height:14px;color:var(--text-m)"></i>
+                    </div>
                     <div>
                         <div class="info-row-label">Panjang Jalan</div>
                         <div class="info-row-value" style="font-family:var(--font-mono);">${panjang}</div>
                     </div>
                 </div>
-                <button class="btn-hapus" onclick="window._jalanHapus(${row.id}, this)">🗑 Hapus Jalan</button>
+                ${window._IS_ADMIN ? `<button class="btn-hapus" onclick="window._jalanHapus(${row.id}, this)"><i data-lucide="trash-2" style="width:13px;height:13px;margin-right:4px;"></i> Hapus Jalan</button>` : ''}
             </div>
         `;
     }
@@ -94,7 +100,7 @@
             .then(r => r.json())
             .then(j => {
                 if (j.status !== 'success') throw new Error(j.message);
-                updateCount(j.total, '🛣️');
+                updateCount(j.total, 'Jalan');
                 j.data.forEach(addPolylineToMap);
                 refreshJalanList(j.data);
             })
@@ -120,10 +126,11 @@
         showDeleteConfirm('Yakin ingin menghapus data jalan ini?').then(confirmed => {
             if (!confirmed) return;
             btnEl.disabled = true;
-            btnEl.textContent = '⏳ Menghapus...';
+            btnEl.innerHTML = '<span class="btn-spinner" style="margin-right: 6px; display: inline-block; vertical-align: middle;"></span> Menghapus...';
 
             const fd = new FormData();
             fd.append('id', id);
+            fd.append('csrf_token', window._CSRF_TOKEN || '');
 
             fetch('api/jalan/hapus.php', { method: 'POST', body: fd })
                 .then(r => r.json())
@@ -131,7 +138,7 @@
                     if (j.status === 'success') {
                         map.closePopup();
                         if (allLayers[id]) { layerGroup.removeLayer(allLayers[id]); delete allLayers[id]; }
-                        updateCount(Object.keys(allLayers).length, '🛣️');
+                        updateCount(Object.keys(allLayers).length, 'Jalan');
                         const COLORS = { 'Nasional': '#ef4444', 'Provinsi': '#f97316', 'Kabupaten': '#eab308' };
                         const remaining = Object.values(allLayers).map(l => ({
                             id: l._jalanId, name: l._jalanNama,
@@ -146,7 +153,8 @@
                 .catch(err => {
                     showToast(err.message || 'Gagal menghapus.', 'error');
                     btnEl.disabled = false;
-                    btnEl.textContent = '🗑 Hapus Jalan';
+                    btnEl.innerHTML = '<i data-lucide="trash-2" style="width:13px;height:13px;margin-right:4px;"></i> Hapus Jalan';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 });
         });
     };
@@ -180,12 +188,15 @@
         drawingMarkers.forEach(m => map.removeLayer(m));
         drawingMarkers = [];
 
-        if (save && drawingPoints.length >= 2) {
+        const shouldSave = save && drawingPoints.length >= 2;
+        if (shouldSave) {
             showFormJalan(drawingPoints.slice());
         }
         drawingPoints = [];
 
-        if (typeof window._resetActiveTool === 'function') window._resetActiveTool();
+        if (!shouldSave) {
+            if (typeof window._resetActiveTool === 'function') window._resetActiveTool();
+        }
     }
 
     function finishDrawing() {
@@ -303,7 +314,7 @@
             .setContent(`
                 <div class="form-popup">
                     <div class="form-popup-header">
-                        <div class="form-popup-icon blue">🛣️</div>
+                        <div class="form-popup-icon blue"><i data-lucide="route" style="width:18px;height:18px;"></i></div>
                         <div>
                             <div class="form-popup-title">Tambah Data Jalan</div>
                             <div class="form-popup-coords">${points.length} titik · ${totalMeter} m</div>
@@ -327,7 +338,7 @@
                     </div>
                     <input type="hidden" id="fj_geojson" value='${escapeHTML(geojson)}'>
                     <input type="hidden" id="fj_panjang" value="${totalMeter}">
-                    <button class="btn-save" id="btnSimpanJalan" onclick="window._jalanSimpan()">💾 Simpan Jalan</button>
+                    <button class="btn-save" id="btnSimpanJalan" onclick="window._jalanSimpan()"><i data-lucide="save" style="width:14px;height:14px;margin-right:4px;"></i> Simpan Jalan</button>
                     <div class="form-status" id="jalanStatus"></div>
                 </div>
             `)
@@ -335,9 +346,11 @@
 
         setTimeout(() => { const el = document.getElementById('fj_nama'); if (el) el.focus(); }, 200);
 
-        // Kalau popup ditutup tanpa simpan: hapus preview
+        // Reset active tool when popup is closed (either by saving or clicking close/outside)
         map.once('popupclose', () => {
-            // preview sudah di-clear di stopDrawing
+            if (typeof window._resetActiveTool === 'function') {
+                window._resetActiveTool();
+            }
         });
     }
 
@@ -351,20 +364,22 @@
         const btn = document.getElementById('btnSimpanJalan');
 
         if (!nama) {
-            statusEl.textContent = '⚠ Nama jalan wajib diisi.';
+            statusEl.innerHTML = '<i data-lucide="alert-triangle" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"></i> Nama jalan wajib diisi.';
             statusEl.className = 'form-status error';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             document.getElementById('fj_nama').focus();
             return;
         }
 
         btn.disabled = true;
-        btn.textContent = '⏳ Menyimpan...';
+        btn.innerHTML = '<span class="btn-spinner" style="margin-right: 6px; display: inline-block; vertical-align: middle;"></span> Menyimpan...';
 
         const fd = new FormData();
         fd.append('nama_jalan', nama);
         fd.append('status_jalan', status);
         fd.append('geojson', geojson);
         fd.append('panjang_meter', panjang);
+        fd.append('csrf_token', window._CSRF_TOKEN || '');
 
         fetch('api/jalan/simpan.php', { method: 'POST', body: fd })
             .then(r => r.json())
@@ -372,7 +387,7 @@
                 if (j.status === 'success') {
                     map.closePopup();
                     addPolylineToMap(j.data);
-                    updateCount(Object.keys(allLayers).length, '🛣️');
+                    updateCount(Object.keys(allLayers).length, 'Jalan');
                     const COLORS = { 'Nasional': '#ef4444', 'Provinsi': '#f97316', 'Kabupaten': '#eab308' };
                     const allItems = Object.values(allLayers).map(l => ({
                         id: l._jalanId, name: l._jalanNama,
@@ -385,10 +400,11 @@
                 } else throw new Error(j.message);
             })
             .catch(err => {
-                statusEl.textContent = '✕ ' + err.message;
+                statusEl.innerHTML = '<i data-lucide="x-circle" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"></i> ' + escapeHTML(err.message);
                 statusEl.className = 'form-status error';
                 btn.disabled = false;
-                btn.textContent = '💾 Simpan Jalan';
+                btn.innerHTML = '<i data-lucide="save" style="width:14px;height:14px;margin-right:4px;"></i> Simpan Jalan';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             });
     };
 

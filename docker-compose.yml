@@ -8,6 +8,8 @@ services:
       DB_HOST: db
       DB_USER: root
       DB_PASS: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}
+      APP_DB_USER: ${APP_DB_USER:-}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-}
       DB_PORT: 3306
       DB_01_NAME: db_webgis_01
       DB_WEBGIS_NAME: db_webgis

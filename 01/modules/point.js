@@ -33,7 +33,7 @@
         const isOpen = Number(poi.buka_24jam) === 1;
         const marker = L.marker(
             [poi.latitude, poi.longitude],
-            { icon: isOpen ? iconDefault : iconClosed, draggable: true, pane: 'pointPane' }
+            { icon: isOpen ? iconDefault : iconClosed, draggable: window._IS_ADMIN, pane: 'pointPane' }
         );
 
         marker._poiId   = poi.id;
@@ -41,61 +41,66 @@
         marker._poiBuka = Number(poi.buka_24jam) === 1;
         allMarkers[poi.id] = marker;
 
-        // Drag to update position
-        marker.on('dragend', function (e) {
-            const { lat, lng } = e.target.getLatLng();
-            const fd = new FormData();
-            fd.append('id', poi.id);
-            fd.append('latitude',  lat.toFixed(8));
-            fd.append('longitude', lng.toFixed(8));
+        if (window._IS_ADMIN) {
+            // Drag to update position
+            marker.on('dragend', function (e) {
+                const { lat, lng } = e.target.getLatLng();
+                const fd = new FormData();
+                fd.append('id', poi.id);
+                fd.append('latitude',  lat.toFixed(8));
+                fd.append('longitude', lng.toFixed(8));
+                fd.append('csrf_token', window._CSRF_TOKEN || '');
 
-            fetch('api/point/update_posisi.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(j => {
-                    if (j.status === 'success') showToast(`Posisi "${escapeHTML(poi.nama_tempat)}" diperbarui!`);
-                    else throw new Error(j.message);
-                })
-                .catch(err => showToast(err.message || 'Gagal update posisi.', 'error'));
-        });
+                fetch('api/point/update_posisi.php', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(j => {
+                        if (j.status === 'success') showToast(`Posisi "${escapeHTML(poi.nama_tempat)}" diperbarui!`);
+                        else throw new Error(j.message);
+                    })
+                    .catch(err => showToast(err.message || 'Gagal update posisi.', 'error'));
+            });
+        }
 
         // Popup info
         const noWa = poi.no_wa ? poi.no_wa.replace(/\D/g, '') : '';
         const waBtn = noWa
             ? `<a class="btn-wa" href="https://wa.me/${noWa}" target="_blank" rel="noopener"
                    style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;padding:9px;background:#25d366;color:#fff;border:none;border-radius:7px;font-family:var(--font-body);font-size:13px;font-weight:700;text-decoration:none;">
-                💬 Chat WhatsApp
+                <i data-lucide="message-square" style="width:14px;height:14px;margin-right:4px;"></i> Chat WhatsApp
                </a>`
             : `<div style="font-size:12px;color:var(--c-muted);text-align:center;padding:8px 0;margin-top:8px;">Tidak ada nomor WA</div>`;
 
         const buka24Badge = isOpen
-            ? `<span class="status-badge-inline" style="background:rgba(46,160,67,.2);color:#3fb950;border:1px solid rgba(46,160,67,.35);">🟢 Buka 24 Jam</span>`
-            : `<span class="status-badge-inline" style="background:rgba(248,81,73,.12);color:#f85149;border:1px solid rgba(248,81,73,.3);">🔴 Tidak 24 Jam</span>`;
+            ? `<span class="status-badge-inline" style="background:rgba(46,160,67,.2);color:#3fb950;border:1px solid rgba(46,160,67,.35);display:inline-flex;align-items:center;gap:4px;"><i data-lucide="check" style="width:12px;height:12px;"></i> Buka 24 Jam</span>`
+            : `<span class="status-badge-inline" style="background:rgba(248,81,73,.12);color:#f85149;border:1px solid rgba(248,81,73,.3);display:inline-flex;align-items:center;gap:4px;"><i data-lucide="x" style="width:12px;height:12px;"></i> Tidak 24 Jam</span>`;
+
+        const deleteBtn = window._IS_ADMIN ? `<button class="btn-hapus" onclick="window._pointHapus(${poi.id}, this)"><i data-lucide="trash-2" style="width:14px;height:14px;margin-right:4px;"></i> Hapus Lokasi</button>` : '';
 
         marker.bindPopup(`
             <div class="info-popup">
                 <div class="info-popup-header">
-                    <div class="info-popup-icon">📍</div>
+                    <div class="info-popup-icon"><i data-lucide="map-pin" style="width:18px;height:18px;"></i></div>
                     <div>
                         <div class="info-popup-name">${escapeHTML(poi.nama_tempat)}</div>
                         <div class="info-popup-id">#${poi.id}</div>
                     </div>
                 </div>
                 <div class="info-row">
-                    <div class="info-row-icon">📞</div>
+                    <div class="info-row-icon"><i data-lucide="phone" style="width:14px;height:14px;"></i></div>
                     <div>
                         <div class="info-row-label">No. WhatsApp</div>
                         <div class="info-row-value">${poi.no_wa ? escapeHTML(poi.no_wa) : '—'}</div>
                     </div>
                 </div>
                 <div class="info-row">
-                    <div class="info-row-icon">🕐</div>
+                    <div class="info-row-icon"><i data-lucide="clock" style="width:14px;height:14px;"></i></div>
                     <div>
                         <div class="info-row-label">Jam Operasional</div>
                         <div class="info-row-value">${buka24Badge}</div>
                     </div>
                 </div>
                 <div class="info-row">
-                    <div class="info-row-icon">🌐</div>
+                    <div class="info-row-icon"><i data-lucide="globe" style="width:14px;height:14px;"></i></div>
                     <div>
                         <div class="info-row-label">Koordinat</div>
                         <div class="info-row-value" style="font-family:var(--font-mono);font-size:11px;">
@@ -104,7 +109,7 @@
                     </div>
                 </div>
                 ${waBtn}
-                <button class="btn-hapus" onclick="window._pointHapus(${poi.id}, this)">🗑 Hapus Lokasi</button>
+                ${deleteBtn}
             </div>
         `, { maxWidth: 300 });
 
@@ -120,7 +125,7 @@
             .then(r => r.json())
             .then(j => {
                 if (j.status !== 'success') throw new Error(j.message);
-                updateCount(j.total, '📍');
+                updateCount(j.total, 'Point');
                 j.data.forEach(addMarkerToMap);
                 refreshPointList(j.data);
             })
@@ -148,10 +153,11 @@
         showDeleteConfirm('Yakin ingin menghapus lokasi ini?').then(confirmed => {
             if (!confirmed) return;
             btnEl.disabled = true;
-            btnEl.textContent = '⏳ Menghapus...';
+            btnEl.innerHTML = '<span class="btn-spinner" style="margin-right: 6px; display: inline-block; vertical-align: middle;"></span> Menghapus...';
 
             const fd = new FormData();
             fd.append('id', id);
+            fd.append('csrf_token', window._CSRF_TOKEN || '');
 
             fetch('api/point/hapus.php', { method: 'POST', body: fd })
                 .then(r => r.json())
@@ -159,7 +165,7 @@
                     if (j.status === 'success') {
                         map.closePopup();
                         if (allMarkers[id]) { layerGroup.removeLayer(allMarkers[id]); delete allMarkers[id]; }
-                        updateCount(Math.max(0, Object.keys(allMarkers).length), '📍');
+                        updateCount(Math.max(0, Object.keys(allMarkers).length), 'Point');
                         // rebuild list dari allMarkers (ambil nama dari marker)
                         const remaining = Object.keys(allMarkers).map(k => ({
                             id: k,
@@ -175,7 +181,8 @@
                 .catch(err => {
                     showToast(err.message || 'Gagal menghapus.', 'error');
                     btnEl.disabled = false;
-                    btnEl.textContent = '🗑 Hapus Lokasi';
+                    btnEl.innerHTML = '<i data-lucide="trash-2" style="width:14px;height:14px;margin-right:4px;"></i> Hapus Lokasi';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 });
         });
     };
@@ -195,7 +202,7 @@
             .setContent(`
                 <div class="form-popup">
                     <div class="form-popup-header">
-                        <div class="form-popup-icon">➕</div>
+                        <div class="form-popup-icon"><i data-lucide="plus" style="width:18px;height:18px;"></i></div>
                         <div>
                             <div class="form-popup-title">Tambah Lokasi Baru</div>
                             <div class="form-popup-coords">${lat}, ${lng}</div>
@@ -212,13 +219,13 @@
                     <div class="form-group">
                         <label>Buka 24 Jam?</label>
                         <select id="f_buka24">
-                            <option value="0">❌ Tidak</option>
-                            <option value="1">✅ Ya</option>
+                            <option value="0">Tidak</option>
+                            <option value="1">Ya</option>
                         </select>
                     </div>
                     <input type="hidden" id="f_lat" value="${lat}">
                     <input type="hidden" id="f_lng" value="${lng}">
-                    <button class="btn-save" id="btnSimpanPoi" onclick="window._pointSimpan()">💾 Simpan Lokasi</button>
+                    <button class="btn-save" id="btnSimpanPoi" onclick="window._pointSimpan()"><i data-lucide="save" style="width:14px;height:14px;margin-right:4px;"></i> Simpan Lokasi</button>
                     <div class="form-status" id="poiStatus"></div>
                 </div>
             `)
@@ -238,14 +245,15 @@
         const btn    = document.getElementById('btnSimpanPoi');
 
         if (!nama) {
-            status.textContent = '⚠ Nama tempat wajib diisi.';
+            status.innerHTML = '<i data-lucide="alert-triangle" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"></i> Nama tempat wajib diisi.';
             status.className = 'form-status error';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             document.getElementById('f_nama').focus();
             return;
         }
 
         btn.disabled = true;
-        btn.textContent = '⏳ Menyimpan...';
+        btn.innerHTML = '<span class="btn-spinner" style="margin-right: 6px; display: inline-block; vertical-align: middle;"></span> Menyimpan...';
 
         const fd = new FormData();
         fd.append('nama_tempat', nama);
@@ -253,6 +261,7 @@
         fd.append('buka_24jam',  buka24);
         fd.append('latitude',    lat);
         fd.append('longitude',   lng);
+        fd.append('csrf_token', window._CSRF_TOKEN || '');
 
         fetch('api/point/simpan.php', { method: 'POST', body: fd })
             .then(r => r.json())
@@ -261,7 +270,7 @@
                     map.closePopup();
                     if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
                     addMarkerToMap(j.data);
-                    updateCount(Object.keys(allMarkers).length, '📍');
+                    updateCount(Object.keys(allMarkers).length, 'Point');
                     // Tambahkan item baru ke list
                     const allItems = Object.values(allMarkers).map(m => ({
                         id: m._poiId,
@@ -275,10 +284,11 @@
                 } else throw new Error(j.message);
             })
             .catch(err => {
-                status.textContent = '✕ ' + err.message;
+                status.innerHTML = '<i data-lucide="x-circle" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"></i> ' + escapeHTML(err.message);
                 status.className = 'form-status error';
                 btn.disabled = false;
-                btn.textContent = '💾 Simpan Lokasi';
+                btn.innerHTML = '<i data-lucide="save" style="width:14px;height:14px;margin-right:4px;"></i> Simpan Lokasi';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             });
     };
 
