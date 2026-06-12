@@ -5,6 +5,12 @@ if (!defined('DB_HOST')) require_once __DIR__ . '/config.php';
 mysqli_report(MYSQLI_REPORT_OFF);
 $conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 
+if ($conn->connect_error && DB_USER !== (getenv('DB_USER') ?: 'root')) {
+    $fallback_user = getenv('DB_USER') ?: 'root';
+    $fallback_pass = getenv('DB_PASS') ?: '';
+    $conn = @new mysqli(DB_HOST, $fallback_user, $fallback_pass, DB_NAME, DB_PORT);
+}
+
 if ($conn->connect_error) {
     error_log('Database connection failed: ' . $conn->connect_error);
     http_response_code(500);

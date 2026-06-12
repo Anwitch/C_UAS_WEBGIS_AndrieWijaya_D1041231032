@@ -17,6 +17,12 @@ function check_database(string $label, string $database, ?string $user = null, ?
 
     $connection = @new mysqli($host, $username, $dbPassword, $database, $port);
 
+    if ($connection->connect_error && $username !== env_value('DB_USER', 'root')) {
+        $username = env_value('DB_USER', 'root');
+        $dbPassword = env_value('DB_PASS', '');
+        $connection = @new mysqli($host, $username, $dbPassword, $database, $port);
+    }
+
     if ($connection->connect_error) {
         error_log("Health check database failed ({$label}): " . $connection->connect_error);
         return [
