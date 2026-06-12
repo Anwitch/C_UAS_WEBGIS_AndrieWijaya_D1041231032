@@ -5,14 +5,14 @@ services:
     expose:
       - "80"
     environment:
-      DB_HOST: db
-      DB_USER: root
-      DB_PASS: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}
+      DB_HOST: ${DB_HOST:-db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASS: ${DB_PASS:-${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}}
       APP_DB_USER: ${APP_DB_USER:-}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:-}
-      DB_PORT: 3306
-      DB_01_NAME: db_webgis_01
-      DB_WEBGIS_NAME: db_webgis
+      DB_PORT: ${DB_PORT:-3306}
+      DB_01_NAME: ${DB_01_NAME:-db_webgis_01}
+      DB_WEBGIS_NAME: ${DB_WEBGIS_NAME:-db_webgis}
     depends_on:
       db:
         condition: service_healthy
