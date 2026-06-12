@@ -30,8 +30,7 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in Coolify}
     volumes:
       - db_data_v2:/var/lib/mysql
-      - ./01/setup_database.sql:/docker-entrypoint-initdb.d/01-db-webgis-01.sql:ro
-      - ./WebgisPovertyMapping/setup_database.sql:/docker-entrypoint-initdb.d/02-db-webgis.sql:ro
+      - ./docker/init_all_databases.sql:/docker-entrypoint-initdb.d/init_all_databases.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h localhost -uroot -p$${MARIADB_ROOT_PASSWORD} --silent"]
       interval: 10s
